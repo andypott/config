@@ -215,7 +215,7 @@ func ultra24(disks []string) {
 	printSuccess("OK", true)
 
 	fmt.Print("Cloning Config Repo...")
-	runOrDie("arch-chroot", "/mnt", "-u", "andy", "git", "clone", "https://github.com/andypott/config", "/home/andy/config")
+	runOrDie("arch-chroot", "-u", "andy", "/mnt", "git", "clone", "https://github.com/andypott/config", "/home/andy/config")
 	printSuccess("OK", true)
 
 	fmt.Print("Installing Packages...")
