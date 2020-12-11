@@ -180,6 +180,20 @@ func partName(disk string, num uint) string {
 	return fmt.Sprintf("/dev/%s%s%d", disk, prefix, num)
 }
 
+func runInteractiveOrDie(name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to run command: %s %v!", name, args)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
 func ultra24(disks []string) {
 	disk := disks[0]
 	hostname := "ultra24"
@@ -280,6 +294,14 @@ func ultra24(disks []string) {
 	fmt.Print("Configuring installed system...")
 	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname, "-installgrub")
 	printSuccess("OK", true)
+
+	fmt.Print("Configuring installed system...")
+	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname, "-installgrub")
+	printSuccess("OK", true)
+
+	fmt.Println("Please set your password...")
+	runOrDie("arch-chroot", "/mnt", "passwd", "andy")
+	printSuccess("...OK", true)
 
 }
 
