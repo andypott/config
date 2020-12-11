@@ -1,0 +1,3 @@
+#  Allow wheel users to run commands without a password
+%wheel	ALL=(ALL)	NOPASSWD: ALL
+
