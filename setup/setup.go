@@ -295,12 +295,8 @@ func ultra24(disks []string) {
 	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname, "-installgrub")
 	printSuccess("OK", true)
 
-	fmt.Print("Configuring installed system...")
-	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname, "-installgrub")
-	printSuccess("OK", true)
-
 	fmt.Println("Please set your password...")
-	runOrDie("arch-chroot", "/mnt", "passwd", "andy")
+	runInteractiveOrDie("arch-chroot", "/mnt", "passwd", "andy")
 	printSuccess("...OK", true)
 
 }
