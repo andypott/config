@@ -278,7 +278,7 @@ func ultra24(disks []string) {
 	printSuccess("OK", true)
 
 	fmt.Print("Configuring installed system...")
-	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname)
+	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname, "-installgrub")
 	printSuccess("OK", true)
 
 }

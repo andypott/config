@@ -125,9 +125,11 @@ func main() {
 
 	var system string
 	var withOutput bool
+	var installgrub bool
 
-	flag.StringVar(&system, "system", "", "Required. The hostname of the system to configure")
-	flag.BoolVar(&withOutput, "output", false, "Optional. Display the output of the commands run")
+	flag.StringVar(&system, "system", "", "Required. The hostname of the system to configure.")
+	flag.BoolVar(&withOutput, "output", false, "Optional. Display the output of the commands run.")
+	flag.BoolVar(&installgrub, "installgrub", false, "Optional.  Install grub bootloader.")
 	flag.Parse()
 	if system == "" {
 		flag.Usage()
@@ -161,4 +163,8 @@ func main() {
 	enableServices(systemDir + "/services")
 	enableServices(sharedDir + "/services")
 
+	if installgrub {
+		runOrDie("grub-install", "--target=x86_64-efi", "--efi-directory=/boot/efi", "--bootloader-id=Arch")
+	}
+	runOrDie("grub-mkconfig", "-o", "/boot/grub/grub.cfg")
 }
