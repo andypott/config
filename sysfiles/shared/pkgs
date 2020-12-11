@@ -1,6 +1,7 @@
 btrfs-progs
 dosfstools
 e2fsprogs
+efibootmgr
 git
 grub
 neovim

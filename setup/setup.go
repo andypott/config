@@ -251,7 +251,7 @@ func ultra24(disks []string) {
 	}
 	file.WriteString("# Generated automatically - remember to update the setup script if updating this file!\n")
 	file.WriteString(fmt.Sprintf("UUID=%s / btrfs %s,subvol=_active/root 0 1\n", btrfsUuid, btrfsOpts))
-	file.WriteString(fmt.Sprintf("UUID=%s /boot/efi btrfs %s 0 2\n", espUuid, fat32Opts))
+	file.WriteString(fmt.Sprintf("UUID=%s /boot/efi vfat %s 0 2\n", espUuid, fat32Opts))
 	file.WriteString(fmt.Sprintf("UUID=%s /home btrfs %s,subvol=_active/home 0 2\n", btrfsUuid, btrfsOpts))
 	file.WriteString(fmt.Sprintf("UUID=%s /tmp btrfs %s,subvol=_active/tmp 0 2\n", btrfsUuid, btrfsOpts))
 	file.WriteString(fmt.Sprintf("UUID=%s /mnt/defvol btrfs %s,subvol=/ 0 2\n", btrfsUuid, btrfsOpts))
