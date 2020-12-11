@@ -127,7 +127,7 @@ func main() {
 	var withOutput bool
 
 	flag.StringVar(&system, "system", "", "Required. The hostname of the system to configure")
-	flag.BoolVar(&withOutput, "ouput", false, "Optional. Display the output of the commands run")
+	flag.BoolVar(&withOutput, "output", false, "Optional. Display the output of the commands run")
 	flag.Parse()
 	if system == "" {
 		flag.Usage()
