@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,10 +11,26 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+type system struct {
+	disks int
+	setup func([]string)
+}
+
 type checkResult struct {
 	check   string
 	success bool
 	msg     string
+}
+
+type strSliceArgs []string
+
+func (ssa *strSliceArgs) String() string {
+	return fmt.Sprintf("%v", *ssa)
+}
+
+func (ssa *strSliceArgs) Set(argStr string) error {
+	*ssa = strings.Split(argStr, ",")
+	return nil
 }
 
 func printColor(color, msg string, eol bool) {
@@ -142,6 +159,19 @@ func mkdirOrDie(path string, perms os.FileMode) {
 	}
 }
 
+func getUuidOrDie(part string) string {
+	// lsblk -n -o UUID /dev/nvme0n1p2
+	cmd := exec.Command("lsblk", "-n", "-o", "UUID", part)
+	out, err := cmd.Output()
+
+	if err != nil {
+		printFailure(fmt.Sprintf("Unable to get uuid for %s!", part), true)
+		os.Exit(1)
+	}
+
+	return strings.TrimSpace(string(out))
+}
+
 func partName(disk string, num uint) string {
 	prefix := ""
 	if strings.Contains(disk, "nvme") {
@@ -152,7 +182,9 @@ func partName(disk string, num uint) string {
 
 func ultra24(disks []string) {
 	disk := disks[0]
+	hostname := "ultra24"
 	btrfsOpts := "rw,relatime,compress=zstd,ssd,space_cache"
+	fat32Opts := "rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro"
 
 	fmt.Print("Creating partitions...")
 
@@ -200,14 +232,41 @@ func ultra24(disks []string) {
 	mkdirOrDie("/mnt/mnt/defvol", perms)
 	mountBtrfsOrDie(rootPart, "/mnt/mnt/defvol", btrfsOpts, "/")
 	mkdirOrDie("/mnt/boot/efi", perms)
-	mountOrDie("vfat", bootPart, "/mnt/boot/efi", "rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro")
+	mountOrDie("vfat", bootPart, "/mnt/boot/efi", fat32Opts)
 
 	printSuccess("OK", true)
 
 	fmt.Print("Running pacstrap...")
-
 	runOrDie("pacstrap", "/mnt", "base", "linux", "linux-firmware", "git")
+	printSuccess("OK", true)
 
+	fmt.Print("Creating fstab...")
+	espUuid := getUuidOrDie(partName(disk, 1))
+	btrfsUuid := getUuidOrDie(partName(disk, 2))
+
+	file, err := os.OpenFile("/mnt/etc/fstab", os.O_WRONLY|os.O_CREATE, 0664)
+	if err != nil {
+		printFailure("Unable to create fstab!", true)
+		os.Exit(1)
+	}
+	file.WriteString("# Generated automatically - remember to update the setup script if updating this file!\n")
+	file.WriteString(fmt.Sprintf("UUID=%s / btrfs %s,subvol=_active/root 0 1\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /boot/efi btrfs %s 0 2\n", espUuid, fat32Opts))
+	file.WriteString(fmt.Sprintf("UUID=%s /home btrfs %s,subvol=_active/home 0 2\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /tmp btrfs %s,subvol=_active/tmp 0 2\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /mnt/defvol btrfs %s,subvol=/ 0 2\n", btrfsUuid, btrfsOpts))
+
+	if err = file.Close(); err != nil {
+		printFailure("Unable to close fstab! For some reason!", true)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	printSuccess("OK", true)
+
+	fmt.Print("Setting timezone...")
+	runOrDie("arch-chroot", "/mnt", "ln", "-sf", "/usr/share/zoneinfo/Europe/London", "/etc/localtime")
+	runOrDie("arch-chroot", "/mnt", "hwclock", "--systohc")
 	printSuccess("OK", true)
 
 	fmt.Print("Creating User...")
@@ -218,19 +277,43 @@ func ultra24(disks []string) {
 	runOrDie("arch-chroot", "-u", "andy", "/mnt", "git", "clone", "https://github.com/andypott/config", "/home/andy/config")
 	printSuccess("OK", true)
 
-	fmt.Print("Installing Packages...")
-	runOrDie("arch-chroot", "/mnt", "pacman", "-S", "--needed", "-", "<", "/home/andy/config/pkgs/system_ultra24")
-	runOrDie("arch-chroot", "/mnt", "pacman", "-S", "--needed", "-", "<", "/home/andy/config/pkgs/all")
+	fmt.Print("Configuring installed system...")
+	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname)
 	printSuccess("OK", true)
 
-	/*
-		arch-chroot /mnt useradd -m -G wheel andy
-		arch-chroot /mnt -u andy
-	*/
 }
 
 func main() {
-	disks := []string{"nvme1n1"}
+	systems := map[string]system{
+		"ultra24": {disks: 1, setup: ultra24},
+	}
+
+	var system string
+	var disks strSliceArgs
+	flag.StringVar(&system, "system", "", "Required. The hostname of the system to setup")
+	flag.Var(&disks, "disks", "Required. Comma seperated list of disks to use. Order matters!!")
+
+	flag.Parse()
+
+	if system == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if len(disks) == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if _, ok := systems[system]; !ok {
+		fmt.Fprintf(os.Stderr, "Unknown system %s\n", system)
+		os.Exit(1)
+	}
+
+	if len(disks) != systems[system].disks {
+		fmt.Fprintf(os.Stderr, "%s requires exactly %d disks\n", system, systems[system].disks)
+		os.Exit(1)
+	}
 
 	checks := []func([]string) checkResult{
 		checkIsRoot,
@@ -256,7 +339,6 @@ func main() {
 		os.Exit(1)
 	} else {
 		printSuccess("All checks passed", true)
-		ultra24(disks)
+		systems[system].setup(disks)
 	}
-
 }
