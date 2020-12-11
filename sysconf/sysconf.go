@@ -66,7 +66,7 @@ func runOrDie(name string, args ...string) {
 	err := cmd.Run()
 
 	if err != nil {
-		fmt.Fprintf("Unable to run command: %s %v!", name, args)
+		fmt.Fprintf(os.Stderr, "Unable to run command: %s %v!", name, args)
 		os.Exit(1)
 	}
 }
@@ -74,7 +74,7 @@ func runOrDie(name string, args ...string) {
 func enableServices(filename string) {
 	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Fprintf("Unable to open %s!", filename)
+		fmt.Fprintf(os.Stderr, "Unable to open %s!", filename)
 		os.Exit(1)
 	}
 
@@ -84,7 +84,7 @@ func enableServices(filename string) {
 	}
 
 	if err = file.Close(); err != nil {
-		fmt.Fprintf("Unable to open %s!", filename)
+		fmt.Fprintf(os.Stderr, "Unable to open %s!", filename)
 		os.Exit(1)
 	}
 }
