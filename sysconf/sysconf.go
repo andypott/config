@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 )
 
-var STDOUT *os.File = nil
-var STDERR *os.File = nil
+var STDOUT io.Writer
+var STDERR io.Writer
 
 func copyFile(src string, dest string) {
 	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0644)

@@ -3,7 +3,9 @@ dosfstools
 e2fsprogs
 efibootmgr
 git
+go
 grub
+make
 neovim
 networkmanager
 sudo
