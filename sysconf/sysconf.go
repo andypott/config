@@ -11,6 +11,9 @@ import (
 	"path/filepath"
 )
 
+var STDOUT *os.File = nil
+var STDERR *os.File = nil
+
 func copyFile(src string, dest string) {
 	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -61,12 +64,35 @@ func copyDir(src string, dest string) {
 	}
 }
 
-func runOrDie(name string, args ...string) {
+func runWithStdinOrDie(stdinFile string, name string, args ...string) {
+	file, err := os.Open(stdinFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to open %s!\n", stdinFile)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 	cmd := exec.Command(name, args...)
-	err := cmd.Run()
+	cmd.Stdin = file
+	cmd.Stdout = STDOUT
+	cmd.Stderr = STDERR
 
+	err = cmd.Run()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to run command: %s %v!", name, args)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func runOrDie(name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = STDOUT
+	cmd.Stderr = STDERR
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to run command: %s %v!", name, args)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
@@ -75,6 +101,7 @@ func enableServices(filename string) {
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to open %s!", filename)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
@@ -85,18 +112,22 @@ func enableServices(filename string) {
 
 	if err = file.Close(); err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to open %s!", filename)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
 func main() {
-	var system string
 	if os.Getuid() != 0 {
 		fmt.Fprintln(os.Stderr, "Must be run as root user!")
 		os.Exit(1)
 	}
 
+	var system string
+	var withOutput bool
+
 	flag.StringVar(&system, "system", "", "Required. The hostname of the system to configure")
+	flag.BoolVar(&withOutput, "ouput", false, "Optional. Display the output of the commands run")
 	flag.Parse()
 	if system == "" {
 		flag.Usage()
@@ -115,11 +146,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	if withOutput {
+		STDOUT = os.Stdout
+		STDERR = os.Stderr
+	}
+
 	systemDir := srcPath + "/" + system
 	sharedDir := srcPath + "/shared"
 
-	runOrDie("pacman", "-S", "--needed", "--noconfirm", "-", "<", systemDir+"/pkgs")
-	runOrDie("pacman", "-S", "--needed", "--noconfirm", "-", "<", sharedDir+"/pkgs")
+	runWithStdinOrDie(systemDir+"/pkgs", "pacman", "-S", "--needed", "--noconfirm", "-")
+	runWithStdinOrDie(sharedDir+"/pkgs", "pacman", "-S", "--needed", "--noconfirm", "-")
 	copyDir(systemDir+"/files", "/")
 	copyDir(sharedDir+"/files", "/")
 	enableServices(systemDir + "/services")
