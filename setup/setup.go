@@ -251,7 +251,7 @@ func ultra24(disks []string) {
 	printSuccess("OK", true)
 
 	fmt.Print("Running pacstrap...")
-	runOrDie("pacstrap", "/mnt", "base", "linux", "linux-firmware", "git")
+	runOrDie("pacstrap", "/mnt", "base", "btrfs-progs", "linux", "linux-firmware", "git")
 	printSuccess("OK", true)
 
 	fmt.Print("Creating fstab...")

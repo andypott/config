@@ -160,6 +160,9 @@ func main() {
 	runWithStdinOrDie(sharedDir+"/pkgs", "pacman", "-S", "--needed", "--noconfirm", "-")
 	copyDir(systemDir+"/files", "/")
 	copyDir(sharedDir+"/files", "/")
+
+	runOrDie("locale-gen")
+
 	enableServices(systemDir + "/services")
 	enableServices(sharedDir + "/services")
 
@@ -167,4 +170,5 @@ func main() {
 		runOrDie("grub-install", "--target=x86_64-efi", "--efi-directory=/boot/efi", "--bootloader-id=Arch")
 	}
 	runOrDie("grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+
 }

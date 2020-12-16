@@ -1,0 +1,9 @@
+output 'Dell Inc. DELL S3220DGF 33PK4W2' {
+    pos 0 0
+    res 2560x1440
+}
+
+output 'Dell Inc. DELL P2219H 79D6543' {
+    pos 2560 360
+    res 1920x1080
+}
