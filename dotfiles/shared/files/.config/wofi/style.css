@@ -1,0 +1,44 @@
+#outer-box {
+    background-color: #282828;
+}
+
+#input {
+    background-color: #1d2021;
+    border: none;
+    box-shadow: none;
+    color: #ebdbb2;
+    caret-color: #fbf1c7;
+    margin: 5px;
+}
+
+#inner-box {
+    margin: 5px;
+}
+
+#entry {
+    background-color: inherit;
+    color: #928374;
+}
+
+#entry * {
+    background-color: inherit;
+    color: inherit;
+}
+
+#entry:selected {
+    background-color: #cc241d;
+    color: #fbf1c7;
+}
+
+#entry:selected * {
+    background-color: inherit;
+    color: #fbf1c7;
+}
+
+#entry #entry:selected {
+    background-color: #fb4934;
+}
+
+#img {
+    margin-right: 5px;
+}

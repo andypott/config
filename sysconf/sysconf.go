@@ -127,13 +127,16 @@ func main() {
 	var withOutput bool
 	var installgrub bool
 
-	flag.StringVar(&system, "system", "", "Required. The hostname of the system to configure.")
+	flag.StringVar(&system, "system", "", "Optional. The hostname of the system to configure.")
 	flag.BoolVar(&withOutput, "output", false, "Optional. Display the output of the commands run.")
 	flag.BoolVar(&installgrub, "installgrub", false, "Optional.  Install grub bootloader.")
 	flag.Parse()
 	if system == "" {
-		flag.Usage()
-		os.Exit(1)
+		var err error
+		if system, err = os.Hostname(); err != nil {
+			fmt.Fprintln(os.Stderr, "No hostname provided and unable to get current hostname")
+			os.Exit(1)
+		}
 	}
 
 	srcPath, err := filepath.Abs(filepath.Dir(os.Args[0]) + "/../sysfiles")

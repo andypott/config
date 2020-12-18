@@ -2,15 +2,14 @@
 
 # Source global definitions
 # Fedora
-if [ -f /etc/bashrc ]; then
-	. /etc/bashrc
-fi
+[ -f /etc/bashrc ] && . /etc/bashrc
 # Debian
-if [ -f /etc/bash_completion ]; then
-	. /etc/bash_completion
-fi
+[ -f /etc/bash_completion ] && . /etc/bash_completion
+# Arch
+[ -f /usr/share/bash-completion/bash_complation ] && . /usr/share/bash-completion/bash_complation
 
 # User specific environment
+[[ ":$PATH:" != *"$HOME/config/bin"* ]] && PATH="$HOME/config/bin:${PATH}"
 [[ ":$PATH:" != *"$HOME/bin"* ]] && PATH="$HOME/bin:${PATH}"
 [[ ":$PATH:" != *"$HOME/go/bin"* ]] && PATH="$HOME/go/bin:${PATH}"
 [[ ":$PATH:" != *"$HOME/.config/composer/vendor/bin"* ]] && PATH="$HOME/.config/composer/vendor/bin:${PATH}"
@@ -24,17 +23,11 @@ export PATH
 
 # Add FZF keybindings
 # Fedora
-if [ -f /usr/share/fzf/shell/key-bindings.bash ]; then
-	. /usr/share/fzf/shell/key-bindings.bash
-fi
+[ -f /usr/share/fzf/shell/key-bindings.bash ] && . /usr/share/fzf/shell/key-bindings.bash
 # Debian
-if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
-	. /usr/share/doc/fzf/examples/key-bindings.bash
-fi
+[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && . /usr/share/doc/fzf/examples/key-bindings.bash
 # Arch
-if [ -f /usr/share/fzf/key-bindings.bash ]; then
-	. /usr/share/fzf/key-bindings.bash
-fi
+[ -f /usr/share/fzf/key-bindings.bash ] && . /usr/share/fzf/key-bindings.bash
 
 # Use ripgrep for fzf
 export FZF_DEFAULT_COMMAND='rg --files --hidden'

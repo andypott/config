@@ -1,4 +1,5 @@
 alacritty
+bash-completion
 base-devel
 btrfs-progs
 clang
@@ -8,6 +9,7 @@ dosfstools
 e2fsprogs
 efibootmgr
 firefox
+firewalld
 fzf
 git
 go
@@ -25,6 +27,8 @@ noto-fonts-emoji
 npm
 openssh
 pavucontrol
+polkit
+polkit-gnome
 pulseaudio
 pulseaudio-alsa
 pulseaudio-bluetooth

@@ -18,7 +18,8 @@ set $term alacritty
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
-set $menu dmenu_path | dmenu | xargs swaymsg exec --
+# set $menu dmenu_path | dmenu | xargs swaymsg exec --
+set $menu wofi --show drun --allow-images
 
 ### Output configuration
 #
@@ -205,6 +206,7 @@ mode "exit" {
     bindsym e exec swaymsg exit
     bindsym r exec systemctl reboot
     bindsym p exec systemctl poweroff
+    bindsym w exec setwinboot; systemctl reboot
 
     # Return to default mode
     bindsym Return mode "default"
@@ -230,6 +232,8 @@ bindsym $mod+p mode "launcher"
 for_window [title="quaketerm"] move to scratchpad
 # launch a quaketerm on startup
 exec $quaketerm
+# launch a polkit agent
+exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
 #
 # Appearance
@@ -244,6 +248,7 @@ set $bg2 #504945
 set $bg3 #665c54
 set $bg4 #7c6f64
 set $fg0 #fbf1c7
+set $fg1 #ebdbb2
 set $fg3 #bdae93
 set $fg4 #a89984
 set $gray #928374

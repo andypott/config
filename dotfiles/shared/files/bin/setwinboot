@@ -1,0 +1,5 @@
+#!/bin/bash
+
+bootnum=$(efibootmgr | awk 'match($0, /Boot([0-9]+)\* Windows Boot Manager/, a){print a[1]}')
+
+[[ ! -z "$bootnum" ]] && sudo efibootmgr -q -n "$bootnum"
