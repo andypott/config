@@ -139,7 +139,12 @@ func main() {
 		}
 	}
 
-	srcPath, err := filepath.Abs(filepath.Dir(os.Args[0]) + "/../sysfiles")
+	exePath, err := os.Executable()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	srcPath, err := filepath.Abs(filepath.Dir(exePath) + "/../sysfiles")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -158,11 +163,12 @@ func main() {
 
 	systemDir := srcPath + "/" + system
 	sharedDir := srcPath + "/shared"
-
-	runWithStdinOrDie(systemDir+"/pkgs", "pacman", "-S", "--needed", "--noconfirm", "-")
-	runWithStdinOrDie(sharedDir+"/pkgs", "pacman", "-S", "--needed", "--noconfirm", "-")
+	// Need to copy before running pacman to ensure that pacman.conf is there
 	copyDir(systemDir+"/files", "/")
 	copyDir(sharedDir+"/files", "/")
+
+	runWithStdinOrDie(systemDir+"/pkgs", "pacman", "-Sy", "--needed", "--noconfirm", "-")
+	runWithStdinOrDie(sharedDir+"/pkgs", "pacman", "-S", "--needed", "--noconfirm", "-")
 
 	runOrDie("locale-gen")
 

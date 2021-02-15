@@ -196,7 +196,12 @@ func main() {
 		}
 	}
 
-	srcPath, err := filepath.Abs(filepath.Dir(os.Args[0]) + "/../dotfiles")
+	exePath, err := os.Executable()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	srcPath, err := filepath.Abs(filepath.Dir(exePath) + "/../dotfiles")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -222,11 +227,13 @@ func main() {
 	}
 	homeDir := user.HomeDir
 
-	linkDirContents(systemDir+"/files", homeDir)
 	linkDirContents(sharedDir+"/files", homeDir)
+	linkDirContents(systemDir+"/files", homeDir)
 
 	setupNeovim(homeDir)
+	// Set default gtk font
+	runOrDie("gsettings", "set", "org.gnome.desktop.interface", "font-name", "Noto Sans Regular 10")
 
-	//enableServices(systemDir + "/services")
 	//enableServices(sharedDir + "/services")
+	//enableServices(systemDir + "/services")
 }

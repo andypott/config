@@ -6,6 +6,11 @@ window:
 mouse_bindings:
     - { mouse: Middle, action: PasteSelection }
 
+font:
+    normal:
+        family: Noto Sans Mono
+    size: 11.0
+
 
 # Colors (Gruvbox dark)
 # bg & fg changed to increase contrast

@@ -206,7 +206,7 @@ mode "exit" {
     bindsym e exec swaymsg exit
     bindsym r exec systemctl reboot
     bindsym p exec systemctl poweroff
-    bindsym w exec setwinboot; systemctl reboot
+    bindsym w exec setwinboot && systemctl reboot
 
     # Return to default mode
     bindsym Return mode "default"
