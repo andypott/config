@@ -15,7 +15,7 @@ var STDOUT io.Writer
 var STDERR io.Writer
 
 func copyFile(src string, dest string) {
-	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0644)
+	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
