@@ -409,7 +409,7 @@ func razerbook(disks []string) {
 func main() {
 	systems := map[string]system{
 		"ultra24":   {disks: 1, setup: ultra24},
-		"razerbook": {disks: 1, setup: ultra24},
+		"razerbook": {disks: 1, setup: razerbook},
 	}
 
 	var system string
