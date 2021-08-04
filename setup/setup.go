@@ -300,9 +300,116 @@ func ultra24(disks []string) {
 
 }
 
+func razerbook(disks []string) {
+	disk := disks[0]
+	hostname := "razerbook"
+	btrfsOpts := "rw,relatime,compress=zstd,ssd,space_cache"
+	fat32Opts := "rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro"
+
+	fmt.Print("Creating partitions...")
+
+	dev := fmt.Sprintf("/dev/%s", disk)
+	runOrDie("parted", "-s", dev, "mklabel", "gpt")
+	runOrDie("parted", "-s", dev, "mkpart", "BOOT", "fat32", "1MiB", "513MiB")
+	runOrDie("parted", "-s", dev, "set", "1", "esp", "on")
+	runOrDie("parted", "-s", dev, "mkpart", "ROOT", "btrfs", "513Mib", "100%")
+
+	printSuccess("OK", true)
+
+	fmt.Print("Formatting partitions...")
+
+	bootPart := partName(disk, 1)
+	rootPart := partName(disk, 2)
+
+	runOrDie("mkfs.fat", "-F", "32", bootPart)
+	runOrDie("mkfs.btrfs", "-f", rootPart)
+
+	printSuccess("OK", true)
+
+	fmt.Print("Creating btrfs subvolumes...")
+
+	mountBtrfsOrDie(rootPart, "/mnt", btrfsOpts, "/")
+
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@")
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@home")
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@tmp")
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@snapshots")
+
+	unmountOrDie("/mnt")
+
+	printSuccess("OK", true)
+
+	fmt.Print("Mounting partitions for install...")
+
+	var perms os.FileMode = 0777
+
+	mountBtrfsOrDie(rootPart, "/mnt", btrfsOpts, "@")
+	mkdirOrDie("/mnt/home", perms)
+	mountBtrfsOrDie(rootPart, "/mnt/home", btrfsOpts, "@home")
+	mkdirOrDie("/mnt/tmp", perms)
+	mountBtrfsOrDie(rootPart, "/mnt/tmp", btrfsOpts, "@tmp")
+	mkdirOrDie("/mnt/mnt/snapshots", perms)
+	mountBtrfsOrDie(rootPart, "/mnt/mnt/snapshots", btrfsOpts, "/")
+	mkdirOrDie("/mnt/boot/efi", perms)
+	mountOrDie("vfat", bootPart, "/mnt/boot/efi", fat32Opts)
+
+	printSuccess("OK", true)
+
+	fmt.Print("Running pacstrap...")
+	runOrDie("pacstrap", "/mnt", "base", "btrfs-progs", "linux", "linux-firmware", "git")
+	printSuccess("OK", true)
+
+	fmt.Print("Creating fstab...")
+	espUuid := getUuidOrDie(partName(disk, 1))
+	btrfsUuid := getUuidOrDie(partName(disk, 2))
+
+	file, err := os.OpenFile("/mnt/etc/fstab", os.O_WRONLY|os.O_CREATE, 0664)
+	if err != nil {
+		printFailure("Unable to create fstab!", true)
+		os.Exit(1)
+	}
+	file.WriteString("# Generated automatically - remember to update the setup script if updating this file!\n")
+	file.WriteString(fmt.Sprintf("UUID=%s / btrfs %s,subvol=@ 0 0\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /boot/efi vfat %s 0 2\n", espUuid, fat32Opts))
+	file.WriteString(fmt.Sprintf("UUID=%s /home btrfs %s,subvol=@home 0 0\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /tmp btrfs %s,subvol=@tmp 0 0\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /mnt/snapshots btrfs %s,subvol=@snapshots 0 0\n", btrfsUuid, btrfsOpts))
+
+	if err = file.Close(); err != nil {
+		printFailure("Unable to close fstab! For some reason!", true)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	printSuccess("OK", true)
+
+	fmt.Print("Setting timezone...")
+	runOrDie("arch-chroot", "/mnt", "ln", "-sf", "/usr/share/zoneinfo/Europe/London", "/etc/localtime")
+	runOrDie("arch-chroot", "/mnt", "hwclock", "--systohc")
+	printSuccess("OK", true)
+
+	fmt.Print("Creating User...")
+	runOrDie("arch-chroot", "/mnt", "useradd", "-m", "-G", "wheel", "andy")
+	printSuccess("OK", true)
+
+	fmt.Print("Cloning Config Repo...")
+	runOrDie("arch-chroot", "-u", "andy", "/mnt", "git", "clone", "https://github.com/andypott/config", "/home/andy/config")
+	printSuccess("OK", true)
+
+	fmt.Print("Configuring installed system...")
+	runOrDie("arch-chroot", "/mnt", "/home/andy/config/bin/sysconf", "-system", hostname, "-installgrub")
+	printSuccess("OK", true)
+
+	fmt.Println("Please set your password...")
+	runInteractiveOrDie("arch-chroot", "/mnt", "passwd", "andy")
+	printSuccess("...OK", true)
+
+}
+
 func main() {
 	systems := map[string]system{
-		"ultra24": {disks: 1, setup: ultra24},
+		"ultra24":   {disks: 1, setup: ultra24},
+		"razerbook": {disks: 1, setup: ultra24},
 	}
 
 	var system string
