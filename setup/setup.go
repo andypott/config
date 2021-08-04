@@ -224,11 +224,10 @@ func ultra24(disks []string) {
 
 	mountBtrfsOrDie(rootPart, "/mnt", btrfsOpts, "/")
 
-	runOrDie("btrfs", "subvolume", "create", "/mnt/_active")
-	runOrDie("btrfs", "subvolume", "create", "/mnt/_active/root")
-	runOrDie("btrfs", "subvolume", "create", "/mnt/_active/home")
-	runOrDie("btrfs", "subvolume", "create", "/mnt/_active/tmp")
-	runOrDie("btrfs", "subvolume", "create", "/mnt/_snapshots")
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@")
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@home")
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@tmp")
+	runOrDie("btrfs", "subvolume", "create", "/mnt/@snapshots")
 
 	unmountOrDie("/mnt")
 
@@ -238,13 +237,13 @@ func ultra24(disks []string) {
 
 	var perms os.FileMode = 0777
 
-	mountBtrfsOrDie(rootPart, "/mnt", btrfsOpts, "_active/root")
+	mountBtrfsOrDie(rootPart, "/mnt", btrfsOpts, "@")
 	mkdirOrDie("/mnt/home", perms)
-	mountBtrfsOrDie(rootPart, "/mnt/home", btrfsOpts, "_active/home")
+	mountBtrfsOrDie(rootPart, "/mnt/home", btrfsOpts, "@home")
 	mkdirOrDie("/mnt/tmp", perms)
-	mountBtrfsOrDie(rootPart, "/mnt/tmp", btrfsOpts, "_active/tmp")
-	mkdirOrDie("/mnt/mnt/defvol", perms)
-	mountBtrfsOrDie(rootPart, "/mnt/mnt/defvol", btrfsOpts, "/")
+	mountBtrfsOrDie(rootPart, "/mnt/tmp", btrfsOpts, "@tmp")
+	mkdirOrDie("/mnt/mnt/snapshots", perms)
+	mountBtrfsOrDie(rootPart, "/mnt/mnt/snapshots", btrfsOpts, "/")
 	mkdirOrDie("/mnt/boot/efi", perms)
 	mountOrDie("vfat", bootPart, "/mnt/boot/efi", fat32Opts)
 
@@ -264,11 +263,11 @@ func ultra24(disks []string) {
 		os.Exit(1)
 	}
 	file.WriteString("# Generated automatically - remember to update the setup script if updating this file!\n")
-	file.WriteString(fmt.Sprintf("UUID=%s / btrfs %s,subvol=_active/root 0 1\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s / btrfs %s,subvol=@ 0 0\n", btrfsUuid, btrfsOpts))
 	file.WriteString(fmt.Sprintf("UUID=%s /boot/efi vfat %s 0 2\n", espUuid, fat32Opts))
-	file.WriteString(fmt.Sprintf("UUID=%s /home btrfs %s,subvol=_active/home 0 2\n", btrfsUuid, btrfsOpts))
-	file.WriteString(fmt.Sprintf("UUID=%s /tmp btrfs %s,subvol=_active/tmp 0 2\n", btrfsUuid, btrfsOpts))
-	file.WriteString(fmt.Sprintf("UUID=%s /mnt/defvol btrfs %s,subvol=/ 0 2\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /home btrfs %s,subvol=@home 0 0\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /tmp btrfs %s,subvol=@tmp 0 0\n", btrfsUuid, btrfsOpts))
+	file.WriteString(fmt.Sprintf("UUID=%s /mnt/snapshots btrfs %s,subvol=@snapshots 0 0\n", btrfsUuid, btrfsOpts))
 
 	if err = file.Close(); err != nil {
 		printFailure("Unable to close fstab! For some reason!", true)

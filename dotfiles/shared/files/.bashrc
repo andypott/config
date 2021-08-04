@@ -8,14 +8,6 @@
 # Arch
 [ -f /usr/share/bash-completion/bash_complation ] && . /usr/share/bash-completion/bash_complation
 
-# User specific environment
-[[ ":$PATH:" != *"$HOME/config/bin"* ]] && PATH="$HOME/config/bin:${PATH}"
-[[ ":$PATH:" != *"$HOME/bin"* ]] && PATH="$HOME/bin:${PATH}"
-[[ ":$PATH:" != *"$HOME/go/bin"* ]] && PATH="$HOME/go/bin:${PATH}"
-[[ ":$PATH:" != *"$HOME/.config/composer/vendor/bin"* ]] && PATH="$HOME/.config/composer/vendor/bin:${PATH}"
-[[ ":$PATH:" != *"$HOME/.local/bin"* ]] && PATH="$HOME/.local/bin:${PATH}"
-export PATH
-
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
 
@@ -33,10 +25,8 @@ export PATH
 export FZF_DEFAULT_COMMAND='rg --files --hidden'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-export XKB_DEFAULT_LAYOUT='gb'
-
 # Aliases
-alias ls="ls --color"
+alias ls="ls --color=auto"
 alias ll="ls -lA"
 
 # Disable command not found searching as it is slow and pointless

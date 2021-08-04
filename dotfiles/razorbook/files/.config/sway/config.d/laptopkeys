@@ -1,0 +1,5 @@
+bindsym XF86MonBrightnessDown exec sudo env PATH=$PATH brightness down
+bindsym XF86MonBrightnessUp exec sudo env PATH=$PATH brightness up
+bindsym XF86AudioRaiseVolume exec audio volume up 10
+bindsym XF86AudioLowerVolume exec audio volume down 10
+bindsym XF86AudioMute exec audio volume mute

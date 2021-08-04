@@ -1,0 +1,9 @@
+output "Sharp Corporation LQ134N1JW48 0x00000000" {
+    position 0 0
+}
+
+output "Panasonic Industry Company Panasonic-TV 0x00000101" {
+    pos 1920 0
+    scale 2
+    mode 3840x2160@60Hz
+}

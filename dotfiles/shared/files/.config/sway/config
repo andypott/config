@@ -6,6 +6,22 @@
 
 ### Variables
 #
+# Colors
+set $bg0_h #1d2021
+set $bg0 #282828
+set $bg1 #3c3836
+set $bg2 #504945
+set $bg3 #665c54
+set $bg4 #7c6f64
+set $fg0 #fbf1c7
+set $fg1 #ebdbb2
+set $fg3 #bdae93
+set $fg4 #a89984
+set $gray #928374
+set $red #cc241d
+set $br_red #fb4934
+set $orange #d65d0e
+
 # Logo key. Use Mod1 for Alt.
 set $mod Mod4
 # Home row direction keys, like vim
@@ -14,7 +30,7 @@ set $down j
 set $up k
 set $right l
 # Your preferred terminal emulator
-set $term alacritty
+set $term foot
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
@@ -36,10 +52,8 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
 #
 # Example configuration:
 #
-# exec swayidle -w \
-#          timeout 300 'swaylock -f -c 000000' \
-#          timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
-#          before-sleep 'swaylock -f -c 000000'
+exec setterm --blank 1 --powerdown 1
+exec swayidle timeout 600 'physlock -dms' before-sleep 'physlock -dms'
 #
 # This will lock your screen after 300 seconds of inactivity, then turn off
 # your displays after another 300 seconds, and turn your screens back on when
@@ -207,6 +221,7 @@ mode "exit" {
     bindsym r exec systemctl reboot
     bindsym p exec systemctl poweroff
     bindsym w exec setwinboot && systemctl reboot
+    bindsym l exec physlock -dms; mode "default"
 
     # Return to default mode
     bindsym Return mode "default"
@@ -217,7 +232,7 @@ bindsym $mod+Shift+x mode "exit"
 #
 # Launcher
 #
-set $quaketerm alacritty -t quaketerm
+set $quaketerm foot --title quaketerm
 mode "launcher" {
     bindsym f exec firefox; mode "default"
     bindsym q exec $quaketerm; mode "default"
@@ -235,26 +250,14 @@ exec $quaketerm
 # launch a polkit agent
 exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
+# Choose audio sink
+bindsym $mod+o exec audio sink set "$(audio sink list | wofi -i --show dmenu)"
+
 #
 # Appearance
 #
 default_border pixel 3
 smart_borders on
-
-set $bg0_h #1d2021
-set $bg0 #282828
-set $bg1 #3c3836
-set $bg2 #504945
-set $bg3 #665c54
-set $bg4 #7c6f64
-set $fg0 #fbf1c7
-set $fg1 #ebdbb2
-set $fg3 #bdae93
-set $fg4 #a89984
-set $gray #928374
-set $red #cc241d
-set $br_red #fb4934
-set $orange #d65d0e
 
 client.focused $red $red $fg0 $orange $red
 client.focused_inactive $bg3 $bg3 $fg3 $fg4 $bg3
@@ -269,7 +272,8 @@ bar {
 
     # When the status_command prints a new line to stdout, swaybar updates.
     # The default just shows the current date and time.
-    status_command while date +'%Y-%m-%d %H:%M:%S'; do sleep 1; done
+    # status_command while date +'%Y-%m-%d %H:%M:%S'; do sleep 1; done
+    status_command ~/code/utils/bin/statusline
 
     colors {
         statusline $fg4
@@ -283,6 +287,11 @@ bar {
 
 input * {
     xkb_layout "gb"
+}
+
+input type:touchpad {
+    tap enabled
+    tap_button_map lrm
 }
 
 include /etc/sway/config.d/*
