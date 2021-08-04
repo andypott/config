@@ -1,4 +1,3 @@
-alacritty
 bash-completion
 base-devel
 btrfs-progs
@@ -33,6 +32,7 @@ noto-fonts-emoji
 npm
 openssh
 pavucontrol
+physlock
 polkit
 polkit-gnome
 pulseaudio
@@ -44,10 +44,10 @@ steam
 sudo
 sway
 swayidle
-swaylock
 traceroute
 udisks2
 vlc
 wl-clipboard
+wofi
 xfsprogs
 xorg-xwayland

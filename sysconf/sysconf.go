@@ -167,6 +167,9 @@ func main() {
 	copyDir(systemDir+"/files", "/")
 	copyDir(sharedDir+"/files", "/")
 
+	// Ensure keys are up to date
+	runOrDie("pacman-key", "--populate", "archlinux")
+
 	runWithStdinOrDie(systemDir+"/pkgs", "pacman", "-Sy", "--needed", "--noconfirm", "-")
 	runWithStdinOrDie(sharedDir+"/pkgs", "pacman", "-S", "--needed", "--noconfirm", "-")
 
