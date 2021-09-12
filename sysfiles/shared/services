@@ -2,3 +2,4 @@ firewalld.service
 NetworkManager.service
 sshd.service
 systemd-timesyncd.service
+bluetooth.service
